@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
+using Google.Cloud.Firestore.V1;
+using Grpc.Auth;
+using Grpc.Core;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,11 +17,13 @@ using Microsoft.Extensions.Logging;
 
 namespace OpenLineBot {
     public class Startup {
-        public Startup (IConfiguration configuration) {
+        public Startup (IConfiguration configuration, IHostEnvironment hostingEnvironment) {
             Configuration = configuration;
+            HostEnvironment = hostingEnvironment;
         }
 
         public IConfiguration Configuration { get; }
+        public IHostEnvironment HostEnvironment {get;}
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices (IServiceCollection services) {
@@ -26,7 +31,11 @@ namespace OpenLineBot {
             SecretInfo secretInfo = new SecretInfo ();
             Configuration.Bind ("LINE-Bot-Setting", secretInfo);
             services.AddSingleton<SecretInfo> (secretInfo);
-            FirestoreDb db = FirestoreDb.Create (Configuration.GetSection ("FirseBase:ProjectId").ToString ());
+            GoogleCredential credential = GoogleCredential.FromFile (HostEnvironment.ContentRootPath + "/auth.json");
+            ChannelCredentials channelCredentials = credential.ToChannelCredentials ();
+            Channel channel = new Channel (FirestoreClient.DefaultEndpoint.ToString (), channelCredentials);
+            FirestoreClient firestoreClient = FirestoreClient.Create (channel);
+            FirestoreDb db = FirestoreDb.Create (Configuration.GetSection ("FirseBase:ProjectId").ToString (), firestoreClient);
             services.AddSingleton<FirestoreDb> (db);
 
         }
