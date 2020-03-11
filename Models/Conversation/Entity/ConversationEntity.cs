@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Google.Cloud.Firestore;
 
 namespace OpenLineBot.Models.Conversation.Entity
 {
@@ -14,8 +15,10 @@ namespace OpenLineBot.Models.Conversation.Entity
         int _MaxOrder = 0;
         BotService _Bot = null;
 
-        public ConversationEntity(BotService bot)
+        private readonly FirestoreDb _db;
+        public ConversationEntity(BotService bot, FirestoreDb db)
         {
+            _db = db;
             _Bot = bot;
            // if (!HasLastConfirm()) throw new Exception(new Error(ErrCode.S007).Message);
         }
@@ -162,7 +165,7 @@ namespace OpenLineBot.Models.Conversation.Entity
 
         public virtual void NextQuestion()
         {
-            DatabaseService service = new DatabaseService(_Bot);
+            DatabaseService service = new DatabaseService(_Bot, _db);
 
             string text = "";
             // Call successor

@@ -1,4 +1,5 @@
 ﻿using OpenLineBot.Repository;
+using Google.Cloud.Firestore;
 
 namespace OpenLineBot.Service
 {
@@ -6,9 +7,9 @@ namespace OpenLineBot.Service
     {
         ConversationRepository Repos;
 
-        public DatabaseService(BotService bot)
+        public DatabaseService(BotService bot, FirestoreDb db)
         {
-            Repos = new ConversationRepository(bot);
+            Repos = new ConversationRepository(bot, db);
         }
 
         public void AddRecord(string userId, int questionNumber, string className)

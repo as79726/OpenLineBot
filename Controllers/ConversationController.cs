@@ -10,18 +10,20 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenLineBot.Models.Conversation.Entity.Custom;
 using OpenLineBot.Service;
+using Google.Cloud.Firestore;
 namespace OpenLineBot.Controllers {
     [ApiController]
     [Route ("[controller]")]
     public class ConversationController : ControllerBase {
         private readonly ILogger<ConversationController> _logger;
         private readonly IConfiguration _config;
-
+ private readonly FirestoreDb _db;
         private readonly SecretInfo _secretInfo;
-        public ConversationController (ILogger<ConversationController> logger, IConfiguration config, SecretInfo secretInfo) {
+        public ConversationController (ILogger<ConversationController> logger, IConfiguration config, SecretInfo secretInfo, FirestoreDb db) {
             _logger = logger;
             _config = config;
             _secretInfo = secretInfo;
+            _db = db;
         }
 
         [HttpPost]
@@ -36,13 +38,13 @@ namespace OpenLineBot.Controllers {
                 var receivedMessage = Utility.Parsing (postData);
                 var evt = receivedMessage.events.FirstOrDefault ();
                 bot = new BotService (_secretInfo.ChannelAccessToken, _secretInfo.AdminId, evt);
-                db = new DatabaseService (bot);
+                db = new DatabaseService (bot, _db);
                 if (db.IsAny (bot.UserInfo.userId)) {
                     var tempClass = Type.GetType (db.QueryClassName (bot.UserInfo.userId)).GetConstructor (new [] { typeof (BotService) }).Invoke (new object[] { bot });
                     tempClass.GetType ().GetMethod ("NextQuestion").Invoke (tempClass, null);
                 } else {
                     if ((bot.LineEvent.type.Equals ("message")) && (bot.LineEvent.message.text.Equals ("記帳"))) {
-                        new Bookkeeping (bot).NextQuestion ();
+                        new Bookkeeping (bot, _db).NextQuestion ();
                     }
                 }
 

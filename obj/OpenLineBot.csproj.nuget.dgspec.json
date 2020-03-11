@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\.net core\\OpenLineBot\\OpenLineBot.csproj": {}
+    "D:\\.net core\\OpenLineBot\\OpenLineBot.csproj": {}
   },
   "projects": {
-    "d:\\.net core\\OpenLineBot\\OpenLineBot.csproj": {
+    "D:\\.net core\\OpenLineBot\\OpenLineBot.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\.net core\\OpenLineBot\\OpenLineBot.csproj",
+        "projectUniqueName": "D:\\.net core\\OpenLineBot\\OpenLineBot.csproj",
         "projectName": "OpenLineBot",
-        "projectPath": "d:\\.net core\\OpenLineBot\\OpenLineBot.csproj",
+        "projectPath": "D:\\.net core\\OpenLineBot\\OpenLineBot.csproj",
         "packagesPath": "C:\\Users\\andy.chen\\.nuget\\packages\\",
-        "outputPath": "d:\\.net core\\OpenLineBot\\obj\\",
+        "outputPath": "D:\\.net core\\OpenLineBot\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\andy.chen\\AppData\\Roaming\\NuGet\\NuGet.Config"

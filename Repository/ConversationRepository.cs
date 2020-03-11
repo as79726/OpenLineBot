@@ -14,12 +14,8 @@ namespace OpenLineBot.Repository {
         private readonly FirestoreDb _db;
         private BotService Bot;
 
-        [ActivatorUtilitiesConstructor]
-        public ConversationRepository (FirestoreDb db) {
+        public ConversationRepository (BotService bot, FirestoreDb db) {
             _db = db;
-        }
-        public ConversationRepository (BotService bot) {
-
             Bot = bot;
 
         }

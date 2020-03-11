@@ -4,14 +4,15 @@ using System.Linq;
 using System.Web;
 using OpenLineBot.Service;
 using System.Reflection;
+using Google.Cloud.Firestore;
 
 namespace OpenLineBot.Models.Conversation.Entity.Custom
 {
     public class Bookkeeping : ConversationEntity
     {
-        public Bookkeeping(BotService bot) : base(bot)
+        public Bookkeeping(BotService bot, FirestoreDb _db) : base(bot,  _db)
         {
-            DatabaseService service = new DatabaseService(bot);
+            DatabaseService service = new DatabaseService(bot, _db);
             if (service.IsAny(bot.UserInfo.userId))
             {
                 foreach (PropertyInfo pi in this.GetType().GetProperties())
