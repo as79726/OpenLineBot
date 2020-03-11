@@ -35,7 +35,7 @@ namespace OpenLineBot {
             ChannelCredentials channelCredentials = credential.ToChannelCredentials ();
             Channel channel = new Channel (FirestoreClient.DefaultEndpoint.ToString (), channelCredentials);
             FirestoreClient firestoreClient = FirestoreClient.Create (channel);
-            FirestoreDb db = FirestoreDb.Create (Configuration.GetSection ("FirseBase:ProjectId").ToString (), firestoreClient);
+            FirestoreDb db = FirestoreDb.Create (Configuration.GetSection ("FirseBase:ProjectId").Value, firestoreClient);
             services.AddSingleton<FirestoreDb> (db);
 
         }
