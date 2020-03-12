@@ -11,7 +11,7 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
         BotService _bot = null;
         FirestoreDb _db = null;
         DatabaseService service = null;
-        public Bookkeeping (BotService bot, FirestoreDb db) : base (bot, _db) {
+        public Bookkeeping (BotService bot, FirestoreDb db) : base (bot, db) {
             _bot = bot;
             _db = db;
             service = new DatabaseService (bot, _db);
