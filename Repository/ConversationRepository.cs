@@ -73,8 +73,8 @@ namespace OpenLineBot.Repository {
             bool ret = false;
 
             try {
-                DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
-                ret = query.Exists;
+                QuerySnapshot query = await _db.Collection ("records").GetSnapshotAsync();
+                ret = query.Count == 0 ? false :  _db.Collection ("records").Document (userId).GetSnapshotAsync ().Result.Exists;
             } catch (Exception ex) {
                 Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
