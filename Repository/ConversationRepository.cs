@@ -29,10 +29,15 @@ namespace OpenLineBot.Repository {
                     { "Answer", "" },
                     { "ClassName", className }
                 };
-                if (docRef.GetSnapshotAsync ().Result.GetValue<List<Dictionary<string, object>>> ("list").Count > 0) {
-                    await docRef.UpdateAsync ("list", FieldValue.ArrayUnion (record));
-                } else {
+                DocumentSnapshot document = docRef.GetSnapshotAsync ().Result;
+                if (document.Exists) {
 
+                    if (document.GetValue<List<Dictionary<string, object>>> ("list").Count > 0) {
+                        await docRef.UpdateAsync ("list", FieldValue.ArrayUnion (record));
+                    } else {
+                        await docRef.SetAsync (new { list = new List<Dictionary<string, object>> () { record } });
+                    }
+                } else {
                     await docRef.SetAsync (new { list = new List<Dictionary<string, object>> () { record } });
                 }
 
