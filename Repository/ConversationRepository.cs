@@ -23,12 +23,18 @@ namespace OpenLineBot.Repository {
         public async void AddRecord (string userId, int questionNumber, string className) {
 
             try {
-                CollectionReference docRef = _db.Collection ("records").Document (userId).Collection ("list");
+                DocumentReference docRef = _db.Collection ("records").Document (userId);
                 Dictionary<string, object> record = new Dictionary<string, object> { { "QuestionNumber", questionNumber },
                     { "Answer", "" },
                     { "ClassName", className }
                 };
-                await docRef.AddAsync (record);
+                if (docRef.GetSnapshotAsync ().Result.GetValue<List<Dictionary<string, object>>> ("list") != null) {
+                    await docRef.UpdateAsync ("list", FieldValue.ArrayUnion (record));
+                } else {
+
+                    await docRef.SetAsync (new { list = new List<Dictionary<string, object>> () { record } });
+                }
+
             } catch (Exception ex) {
                 Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
