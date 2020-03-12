@@ -121,8 +121,8 @@ namespace OpenLineBot.Repository {
 
             try {
                 DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
-                answer = query.GetValue<List<Dictionary<string, object>>> ("list").Where (a => Convert.ToInt32 (a["QuestionNumber"]) == questionNumber && a["ClassName"].Equals (className))
-                    .First () ["Answer"].ToString ();
+                var list = query.GetValue<List<Dictionary<string, object>>> ("list").Where (a => Convert.ToInt32 (a["QuestionNumber"]) == questionNumber && a["ClassName"].Equals (className)).FirstOrDefault();
+                answer =  list == null ? answer : list["Answer"].ToString ();
 
             } catch (Exception ex) {
                 Bot.PushMessage (ex.StackTrace);
