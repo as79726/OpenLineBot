@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using Google.Cloud.Firestore;
 using isRock.LineBot;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using OpenLineBot.Models.Conversation.Entity.Custom;
 using OpenLineBot.Service;
-using Google.Cloud.Firestore;
 namespace OpenLineBot.Controllers {
     [ApiController]
     [Route ("[controller]")]
     public class ConversationController : ControllerBase {
         private readonly ILogger<ConversationController> _logger;
         private readonly IConfiguration _config;
- private readonly FirestoreDb _db;
+        private readonly FirestoreDb _db;
         private readonly SecretInfo _secretInfo;
         public ConversationController (ILogger<ConversationController> logger, IConfiguration config, SecretInfo secretInfo, FirestoreDb db) {
             _logger = logger;
@@ -50,13 +50,11 @@ namespace OpenLineBot.Controllers {
 
                 return Ok ();
             } catch (Exception ex) {
-
+                _logger.LogError (ex.StackTrace);
                 bot.Notify (ex);
                 return Ok ();
             }
         }
     }
-
-    
 
 }
