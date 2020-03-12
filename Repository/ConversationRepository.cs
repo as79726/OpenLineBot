@@ -127,8 +127,8 @@ namespace OpenLineBot.Repository {
             string className = null;
 
             try {
-                QuerySnapshot query = await _db.Collection ("records").Document (userId).Collection ("list").GetSnapshotAsync ();
-                className = query.Documents.First ().GetValue<string> ("ClassName");
+                DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync();
+                className = query.GetValue<List<Dictionary<string, object>>>("list").First ()["ClassName"].ToString();
             } catch (Exception ex) {
                 Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
