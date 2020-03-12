@@ -40,7 +40,7 @@ namespace OpenLineBot.Controllers {
                 bot = new BotService (_secretInfo.ChannelAccessToken, _secretInfo.AdminId, evt);
                 db = new DatabaseService (bot, _db);
                 if (db.IsAny (bot.UserInfo.userId)) {
-                    var tempClass = Type.GetType (db.QueryClassName (bot.UserInfo.userId)).GetConstructor (new [] { typeof (BotService) }).Invoke (new object[] { bot });
+                    var tempClass = Type.GetType (db.QueryClassName (bot.UserInfo.userId)).GetConstructor (new [] { typeof (BotService), typeof(FirestoreDb) }).Invoke (new object[] { bot, _db });
                     tempClass.GetType ().GetMethod ("NextQuestion").Invoke (tempClass, null);
                 } else {
                     if ((bot.LineEvent.type.Equals ("message")) && (bot.LineEvent.message.text.Equals ("記帳"))) {
