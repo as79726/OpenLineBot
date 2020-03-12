@@ -76,7 +76,7 @@ namespace OpenLineBot.Repository {
 
             try {
                 QuerySnapshot query = await _db.Collection ("records").GetSnapshotAsync ();
-                ret = query.Count == 0 ? false : _db.Collection ("records").Document (userId).GetSnapshotAsync ().Result.GetValue<List<Dictionary<string, object>>>("list").Count == 0 ? false : true;
+                ret = query.Count == 0 ? false : _db.Collection ("records").Document (userId).GetSnapshotAsync ().Result.GetValue<List<Dictionary<string, object>>> ("list").Count == 0 ? false : true;
             } catch (Exception ex) {
                 Bot.PushMessage (ex.StackTrace);
                 // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
@@ -121,8 +121,8 @@ namespace OpenLineBot.Repository {
 
             try {
                 DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
-                Dictionary<string, object> list = query.GetValue<List<Dictionary<string, object>>> ("list").Where (a => Convert.ToInt32 (a["QuestionNumber"]) == questionNumber && a["ClassName"].Equals (className)).FirstOrDefault();
-                answer =  list == null ? answer : list["Answer"].ToString ();
+                Dictionary<string, object> list = query.GetValue<List<Dictionary<string, object>>> ("list").Where (a => Convert.ToInt32 (a["QuestionNumber"]) == questionNumber && a["ClassName"].Equals (className)).FirstOrDefault ();
+                answer = list == null ? answer : list["Answer"].ToString ();
 
             } catch (Exception ex) {
                 Bot.PushMessage (ex.StackTrace);
@@ -137,7 +137,7 @@ namespace OpenLineBot.Repository {
 
             try {
                 DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
-                Dictionary<string, object> list = query.GetValue<List<Dictionary<string, object>>> ("list").FirstOrDefault () ;
+                Dictionary<string, object> list = query.GetValue<List<Dictionary<string, object>>> ("list").FirstOrDefault ();
                 className = list == null ? className : list["ClassName"].ToString ();
             } catch (Exception ex) {
                 Bot.PushMessage (ex.StackTrace);
@@ -145,6 +145,20 @@ namespace OpenLineBot.Repository {
             }
 
             return className;
+        }
+
+        public async void AddFoodRecord (string userId, string item, string money, string bookDate) {
+            DocumentReference docRef = _db.Collection (userId).Document (bookDate);
+            Dictionary<string, object> record = new Dictionary<string, object> { { "Name", item },
+                { "Money", Decimal.Parse (money) }
+            };
+            if (docRef.GetSnapshotAsync ().Result.GetValue<List<Dictionary<string, object>>> ("list").Count > 0) {
+                await docRef.UpdateAsync ("list", FieldValue.ArrayUnion (record));
+            } else {
+
+                await docRef.SetAsync (new { list = new List<Dictionary<string, object>> () { record } });
+            }
+
         }
     }
 }

@@ -7,5 +7,7 @@
         bool IsAnswerPassed(int order, string text);
         string GetQuestionTextOnly(int order);
         void NextQuestion();
+
+       
     }
 }
