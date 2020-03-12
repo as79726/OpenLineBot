@@ -28,7 +28,7 @@ namespace OpenLineBot.Repository {
                     { "Answer", "" },
                     { "ClassName", className }
                 };
-                if (docRef.GetSnapshotAsync ().Result.GetValue<List<Dictionary<string, object>>> ("list") != null) {
+                if (docRef.GetSnapshotAsync ().Result.Exists) {
                     await docRef.UpdateAsync ("list", FieldValue.ArrayUnion (record));
                 } else {
 
