@@ -28,7 +28,7 @@ namespace OpenLineBot.Repository {
                     { "Answer", "" },
                     { "ClassName", className }
                 };
-                if (docRef.GetSnapshotAsync ().Result.Exists) {
+                if (docRef.GetSnapshotAsync ().Result.GetValue<List<Dictionary<string, object>>>("list").Count > 0) {
                     await docRef.UpdateAsync ("list", FieldValue.ArrayUnion (record));
                 } else {
 
@@ -61,7 +61,7 @@ namespace OpenLineBot.Repository {
             try {
                 DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
                 List<Dictionary<string, object>> items = query.GetValue<List<Dictionary<string, object>>> ("list");
-                Dictionary<string, object> item = items.Where (a => Convert.ToInt32 (a["questionNumber"]) == questionNumber && a["ClassName"].Equals (className)).First ();
+                Dictionary<string, object> item = items.Where (a => Convert.ToInt32 (a["QuestionNumber"]) == questionNumber && a["ClassName"].Equals (className)).First ();
                 item["Answer"] = answer;
 
                 await _db.Collection ("records").Document (userId).UpdateAsync ("list", items);
