@@ -86,8 +86,8 @@ namespace OpenLineBot.Repository {
             int ret = 0;
 
             try {
-                DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
-                ret = query.GetValue<List<Dictionary<string, object> >>("list").Select(a =>  Convert.ToInt32(a["QuestionNumber"])).Max(); 
+                QuerySnapshot query = await _db.Collection ("records").GetSnapshotAsync ();
+                ret = query.Count == 0 ? 0 :  _db.Collection ("records").Document(userId).GetSnapshotAsync().Result.GetValue<List<Dictionary<string, object> >>("list").Select(a =>  Convert.ToInt32(a["QuestionNumber"])).Max(); 
             } catch (Exception ex) {
                 Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
