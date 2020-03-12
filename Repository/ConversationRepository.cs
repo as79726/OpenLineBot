@@ -69,12 +69,12 @@ namespace OpenLineBot.Repository {
 
         }
 
-        public bool IsAny (string userId) {
+        public async Task<bool> IsAny (string userId) {
             bool ret = false;
 
             try {
-                DocumentReference query = _db.Collection ("records").Document (userId);
-                ret = query.GetSnapshotAsync ().Result.Exists;
+                DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
+                ret = query.Exists;
             } catch (Exception ex) {
                 Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
@@ -86,8 +86,8 @@ namespace OpenLineBot.Repository {
             int ret = 0;
 
             try {
-                QuerySnapshot query = await _db.Collection ("records").Document (userId).Collection ("list").WhereEqualTo ("className", className).OrderByDescending ("QuestionNumber").GetSnapshotAsync ();
-                ret = query.Documents.First ().GetValue<int> ("QuestionNumber");
+                DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
+                ret = query.GetValue<List<Dictionary<string, object> >>("list").Select(a =>  Convert.ToInt32(a["QuestionNumber"])).Max(); 
             } catch (Exception ex) {
                 Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }

@@ -29,7 +29,7 @@ namespace OpenLineBot.Service
 
         public bool IsAny(string userId)
         {
-            return Repos.IsAny(userId);
+            return Repos.IsAny(userId).Result;
         }
 
         public int LastQuestionNumber(string userId, string className)
