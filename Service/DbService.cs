@@ -34,17 +34,17 @@ namespace OpenLineBot.Service
 
         public int LastQuestionNumber(string userId, string className)
         {
-            return Repos.LastQuestionNumber(userId, className).Result;;
+            return Repos.LastQuestionNumber(userId, className).Result;
         }
 
         public bool HasAnswer(string userId, int questionNumber, string className)
         {
-            return Repos.HasAnswer(userId, questionNumber, className).Result;;
+            return Repos.HasAnswer(userId, questionNumber, className).Result;
         }
 
         public string QueryAnswer(string userId, int questionNumber, string className) 
         {
-            return Repos.QueryAnswer(userId, questionNumber, className).Result;;
+            return Repos.QueryAnswer(userId, questionNumber, className).Result;
         }
 
         public string QueryClassName(string userId)

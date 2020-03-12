@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -36,8 +37,8 @@ namespace OpenLineBot.Repository {
                 }
 
             } catch (Exception ex) {
-                             Bot.PushMessage(ex.StackTrace);
-               // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
+                Bot.PushMessage (ex.StackTrace);
+                // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
 
         }
@@ -45,16 +46,13 @@ namespace OpenLineBot.Repository {
         public async void Remove (string userId, string className) {
 
             try {
-                QuerySnapshot query = await _db.Collection ("records").Document (userId).Collection ("list").WhereEqualTo ("className", className).GetSnapshotAsync ();
-                IReadOnlyList<DocumentSnapshot> documents = query.Documents;
-                while (documents.Count > 0) {
-                    foreach (DocumentSnapshot document in documents) {
-                        await document.Reference.DeleteAsync ();
-                    }
-                }
+                DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
+                List<Dictionary<string, object>> items = query.GetValue<List<Dictionary<string, object>>> ("list");
+                items = items.Where (a => !a["ClassName"].Equals (className)).ToList<Dictionary<string, object>> ();
+                await _db.Collection ("records").Document (userId).SetAsync (new { list = items });
             } catch (Exception ex) {
-                             Bot.PushMessage(ex.StackTrace);
-               // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
+                Bot.PushMessage (ex.StackTrace);
+                // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
 
         }
@@ -67,8 +65,8 @@ namespace OpenLineBot.Repository {
                 item["Answer"] = answer;
                 await _db.Collection ("records").Document (userId).SetAsync (new { list = items });
             } catch (Exception ex) {
-                             Bot.PushMessage(ex.StackTrace);
-               // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
+                Bot.PushMessage (ex.StackTrace);
+                // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
 
         }
@@ -80,8 +78,8 @@ namespace OpenLineBot.Repository {
                 QuerySnapshot query = await _db.Collection ("records").GetSnapshotAsync ();
                 ret = query.Count == 0 ? false : _db.Collection ("records").Document (userId).GetSnapshotAsync ().Result.Exists;
             } catch (Exception ex) {
-                             Bot.PushMessage(ex.StackTrace);
-               // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
+                Bot.PushMessage (ex.StackTrace);
+                // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
 
             return ret;
@@ -95,7 +93,7 @@ namespace OpenLineBot.Repository {
                 ret = query.Count == 0 ? 0 : _db.Collection ("records").Document (userId).GetSnapshotAsync ().Result.GetValue<List<Dictionary<string, object>>> ("list")
                     .Select (a => Convert.ToInt32 (a["QuestionNumber"])).ToList ().Max ();
             } catch (Exception ex) {
-               Bot.PushMessage(ex.StackTrace);
+                Bot.PushMessage (ex.StackTrace);
                 //Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
 
@@ -106,12 +104,13 @@ namespace OpenLineBot.Repository {
             bool ret = false;
 
             try {
-                QuerySnapshot query = await _db.Collection ("records").Document (userId).Collection ("list").WhereEqualTo ("className", className).WhereEqualTo ("QuestionNumber", questionNumber).GetSnapshotAsync ();
-                string answer = query.Documents.First ().GetValue<string> ("Answer");
+                DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
+                string answer = query.GetValue<List<Dictionary<string, object>>> ("list").Where (a => Convert.ToInt32 (a["QuestionNumber"]) == questionNumber && a["ClassName"].Equals (className))
+                    .First () ["Answer"].ToString ();
                 ret = !string.IsNullOrEmpty (answer);
             } catch (Exception ex) {
-                             Bot.PushMessage(ex.StackTrace);
-               // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
+                Bot.PushMessage (ex.StackTrace);
+                // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
 
             return ret;
@@ -121,11 +120,12 @@ namespace OpenLineBot.Repository {
             string answer = null;
 
             try {
-                QuerySnapshot query = await _db.Collection ("records").Document (userId).Collection ("list").WhereEqualTo ("className", className).WhereEqualTo ("QuestionNumber", questionNumber).GetSnapshotAsync ();
-                answer = query.Documents.First ().GetValue<string> ("Answer");
+                DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
+                answer = query.GetValue<List<Dictionary<string, object>>> ("list").Where (a => Convert.ToInt32 (a["QuestionNumber"]) == questionNumber && a["ClassName"].Equals (className))
+                    .First () ["Answer"].ToString ();
 
             } catch (Exception ex) {
-                             Bot.PushMessage(ex.StackTrace);
+                Bot.PushMessage (ex.StackTrace);
                 //Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
 
@@ -139,8 +139,8 @@ namespace OpenLineBot.Repository {
                 DocumentSnapshot query = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
                 className = query.GetValue<List<Dictionary<string, object>>> ("list").First () ["ClassName"].ToString ();
             } catch (Exception ex) {
-                             Bot.PushMessage(ex.StackTrace);
-               // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
+                Bot.PushMessage (ex.StackTrace);
+                // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
 
             return className;
