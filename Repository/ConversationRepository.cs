@@ -69,12 +69,12 @@ namespace OpenLineBot.Repository {
 
         }
 
-        public async Task<bool> IsAny (string userId) {
+        public bool IsAny (string userId) {
             bool ret = false;
 
             try {
-                QuerySnapshot query = await _db.Collection ("records").Document (userId).Collection ("list").GetSnapshotAsync ();
-                ret = query.Documents.Count () == 0 ? false : true;
+                DocumentReference query = _db.Collection ("records").Document (userId);
+                ret = query.GetSnapshotAsync ().Result.Exists;
             } catch (Exception ex) {
                 Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
             }
