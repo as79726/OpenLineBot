@@ -173,7 +173,7 @@ namespace OpenLineBot.Models.Conversation.Entity {
 
                         }
                         service.Update (_Bot.UserInfo.userId, lastQuestionNumber, text, this.GetType ().FullName);
-                        service.AddRecord (_Bot.UserInfo.userId, lastQuestionNumber + 1, this.GetType ().FullName);
+
                         if (this.MaxOrder == lastQuestionNumber) {
                             List<TemplateActionBase> actions = new List<TemplateActionBase> ();
                             for (int i = 1; i <= this.MaxOrder; i++) {
@@ -194,6 +194,7 @@ namespace OpenLineBot.Models.Conversation.Entity {
                             TemplateMessage a = new TemplateMessage (template);
                             _Bot.PushMessage (a);
                         } else {
+                            service.AddRecord (_Bot.UserInfo.userId, lastQuestionNumber + 1, this.GetType ().FullName);
                             this.PushQuestion (lastQuestionNumber + 1);
                         }
                     } else {
@@ -202,7 +203,7 @@ namespace OpenLineBot.Models.Conversation.Entity {
 
                 }
             } catch (Exception ex) {
-                Console.WriteLine(ex.StackTrace);
+                Console.WriteLine (ex.StackTrace);
                 _Bot.Notify (ex);
             }
         }

@@ -153,13 +153,18 @@ namespace OpenLineBot.Repository {
 
         public async void AddFoodRecord (string userId, string item, string money, string bookDate) {
             DocumentReference docRef = _db.Collection (userId).Document (bookDate);
+            DocumentSnapshot docShot = await _db.Collection (userId).Document (bookDate).GetSnapshotAsync ();
             Dictionary<string, object> record = new Dictionary<string, object> { { "Name", item },
                 { "Money", Decimal.Parse (money) }
             };
-            if (docRef.GetSnapshotAsync ().Result.GetValue<List<Dictionary<string, object>>> ("list").Count > 0) {
-                await docRef.UpdateAsync ("list", FieldValue.ArrayUnion (record));
-            } else {
+            if (docShot.Exists) {
+                if (docShot.GetValue<List<Dictionary<string, object>>> ("list").Count > 0) {
+                    await docRef.UpdateAsync ("list", FieldValue.ArrayUnion (record));
+                } else {
 
+                    await docRef.SetAsync (new { list = new List<Dictionary<string, object>> () { record } });
+                }
+            } else {
                 await docRef.SetAsync (new { list = new List<Dictionary<string, object>> () { record } });
             }
 
