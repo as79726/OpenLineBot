@@ -141,69 +141,70 @@ namespace OpenLineBot.Models.Conversation.Entity {
             DatabaseService service = new DatabaseService (_Bot, _db);
 
             string text = "";
-            // Call successor
-            switch (_Bot.LineEvent.type) {
-                case "message":
-                    if (_Bot.LineEvent.message.type.Equals ("text")) {
-                        text = _Bot.LineEvent.message.text;
-                    } else {
-                        throw new Exception (new Error (ErrCode.S010).Message);
-                    }
-                    break;
-                case "postback":
-                    text = _Bot.LineEvent.postback.Params != null ? ((_Bot.LineEvent.postback.Params.datetime != null) ? _Bot.LineEvent.postback.Params.datetime : ((_Bot.LineEvent.postback.Params.date != null) ? _Bot.LineEvent.postback.Params.date : (_Bot.LineEvent.postback.Params.time != null) ? _Bot.LineEvent.postback.Params.time : _Bot.LineEvent.postback.data)) : _Bot.LineEvent.postback.data;
-                    break;
-                default:
-                    throw new Exception (new Error (ErrCode.S002).Message);
-            }
-
-            if (service.LastQuestionNumber (_Bot.UserInfo.userId, this.GetType ().FullName) == 0) {
-                service.AddRecord (_Bot.UserInfo.userId, 1, this.GetType ().FullName);
-                this.PushQuestion (1);
-            } else {
-                int lastQuestionNumber = service.LastQuestionNumber (_Bot.UserInfo.userId, this.GetType ().FullName);
-                bool flag = this.IsAnswerPassed (lastQuestionNumber, text);
-                if (flag) {
-                    foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
-                        Order order = pi.GetCustomAttribute<Order> ();
-                        if (order != null && order.Id == lastQuestionNumber) {
-                            pi.SetValue (this, text);
+            try {
+                // Call successor
+                switch (_Bot.LineEvent.type) {
+                    case "message":
+                        if (_Bot.LineEvent.message.type.Equals ("text")) {
+                            text = _Bot.LineEvent.message.text;
+                        } else {
+                            throw new Exception (new Error (ErrCode.S010).Message);
                         }
-
-                    }
-                    service.Update (_Bot.UserInfo.userId, lastQuestionNumber, text, this.GetType ().FullName);
-                    service.AddRecord (_Bot.UserInfo.userId, lastQuestionNumber + 1, this.GetType ().FullName);
-                    if (this.MaxOrder == lastQuestionNumber) {
-                        List<TemplateActionBase> actions = new List<TemplateActionBase> ();
-                        for (int i = 1; i <= this.MaxOrder; i++) {
-                            foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
-                                Order order = pi.GetCustomAttribute<Order> ();
-                                if (order != null && order.Id == i) {
-                                    actions.Add (new MessageAction () { label = this.GetQuestionTextOnly (i) + " " + pi.GetValue (this), text = pi.GetValue (this).ToString () });
-                                }
-
-                            }
-                        }
-                        try {
-                            Save ();
-                        } catch (Exception ex) {
-                            _Bot.Notify (ex);
-                        }
-
-                        Column column = new Column () { thumbnailImageUrl = new Uri ("https://beauty-upgrade.tw/wp-content/uploads/2019/06/6-12.jpg"), title = "明細", actions = actions, text = "你的明細如下" };
-                        CarouselTemplate template = new CarouselTemplate () { columns = new List<Column> () { column } };
-                        service.Remove (_Bot.UserInfo.userId, this.GetType ().FullName);
-                        TemplateMessage a = new TemplateMessage (template);
-                        _Bot.PushMessage (a);
-                    } else {
-                        this.PushQuestion (lastQuestionNumber + 1);
-                    }
-                } else {
-                    this.PushComplaint (lastQuestionNumber);
+                        break;
+                    case "postback":
+                        text = _Bot.LineEvent.postback.Params != null ? ((_Bot.LineEvent.postback.Params.datetime != null) ? _Bot.LineEvent.postback.Params.datetime : ((_Bot.LineEvent.postback.Params.date != null) ? _Bot.LineEvent.postback.Params.date : (_Bot.LineEvent.postback.Params.time != null) ? _Bot.LineEvent.postback.Params.time : _Bot.LineEvent.postback.data)) : _Bot.LineEvent.postback.data;
+                        break;
+                    default:
+                        throw new Exception (new Error (ErrCode.S002).Message);
                 }
 
-            }
+                if (service.LastQuestionNumber (_Bot.UserInfo.userId, this.GetType ().FullName) == 0) {
+                    service.AddRecord (_Bot.UserInfo.userId, 1, this.GetType ().FullName);
+                    this.PushQuestion (1);
+                } else {
+                    int lastQuestionNumber = service.LastQuestionNumber (_Bot.UserInfo.userId, this.GetType ().FullName);
+                    bool flag = this.IsAnswerPassed (lastQuestionNumber, text);
+                    if (flag) {
+                        foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
+                            Order order = pi.GetCustomAttribute<Order> ();
+                            if (order != null && order.Id == lastQuestionNumber) {
+                                pi.SetValue (this, text);
+                            }
 
+                        }
+                        service.Update (_Bot.UserInfo.userId, lastQuestionNumber, text, this.GetType ().FullName);
+                        service.AddRecord (_Bot.UserInfo.userId, lastQuestionNumber + 1, this.GetType ().FullName);
+                        if (this.MaxOrder == lastQuestionNumber) {
+                            List<TemplateActionBase> actions = new List<TemplateActionBase> ();
+                            for (int i = 1; i <= this.MaxOrder; i++) {
+                                foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
+                                    Order order = pi.GetCustomAttribute<Order> ();
+                                    if (order != null && order.Id == i) {
+                                        actions.Add (new MessageAction () { label = this.GetQuestionTextOnly (i) + " " + pi.GetValue (this), text = pi.GetValue (this).ToString () });
+                                    }
+
+                                }
+                            }
+
+                            Save ();
+
+                            Column column = new Column () { thumbnailImageUrl = new Uri ("https://beauty-upgrade.tw/wp-content/uploads/2019/06/6-12.jpg"), title = "明細", actions = actions, text = "你的明細如下" };
+                            CarouselTemplate template = new CarouselTemplate () { columns = new List<Column> () { column } };
+                            service.Remove (_Bot.UserInfo.userId, this.GetType ().FullName);
+                            TemplateMessage a = new TemplateMessage (template);
+                            _Bot.PushMessage (a);
+                        } else {
+                            this.PushQuestion (lastQuestionNumber + 1);
+                        }
+                    } else {
+                        this.PushComplaint (lastQuestionNumber);
+                    }
+
+                }
+            } catch (Exception ex) {
+                Console.WriteLine(ex.StackTrace);
+                _Bot.Notify (ex);
+            }
         }
 
         public abstract void Save ();
