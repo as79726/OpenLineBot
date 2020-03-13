@@ -72,7 +72,7 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
                             } else {
                                 _Bot.ReplyMessage (_Bot.LineEvent.replyToken, @"當日無消費");
                             }
-
+                            service.Remove (_Bot.UserInfo.userId, this.GetType ().FullName);
                         } else {
                             service.AddRecord (_Bot.UserInfo.userId, lastQuestionNumber + 1, this.GetType ().FullName);
                             this.PushQuestion (lastQuestionNumber + 1);
