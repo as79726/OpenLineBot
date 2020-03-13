@@ -184,7 +184,12 @@ namespace OpenLineBot.Models.Conversation.Entity {
 
                             }
                         }
-                        Save();
+                        try {
+                            Save ();
+                        } catch (Exception ex) {
+                            _Bot.Notify (ex);
+                        }
+
                         Column column = new Column () { thumbnailImageUrl = new Uri ("https://beauty-upgrade.tw/wp-content/uploads/2019/06/6-12.jpg"), title = "明細", actions = actions, text = "你的明細如下" };
                         CarouselTemplate template = new CarouselTemplate () { columns = new List<Column> () { column } };
                         service.Remove (_Bot.UserInfo.userId, this.GetType ().FullName);
@@ -201,6 +206,6 @@ namespace OpenLineBot.Models.Conversation.Entity {
 
         }
 
-        public abstract void Save();
+        public abstract void Save ();
     }
 }
