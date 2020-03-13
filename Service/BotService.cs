@@ -2,6 +2,7 @@
 using OpenLineBot.Models.Bot;
 using OpenLineBot.Models.System;
 using System;
+using System.Collections.Generic;
 
 namespace OpenLineBot.Service
 {
@@ -70,6 +71,14 @@ namespace OpenLineBot.Service
         public void PushMessage(string response)
         {
             _RockBot.PushMessage(UserInfo.userId, response);
+        }
+
+        public void ReplyMessage(string ReplyToken, string Message){
+            _RockBot.ReplyMessage(ReplyToken, Message);
+        }
+
+        public void ReplyMessage(string ReplyToken, List<MessageBase> Messages){
+            _RockBot.ReplyMessage(ReplyToken, Messages);
         }
     }
 

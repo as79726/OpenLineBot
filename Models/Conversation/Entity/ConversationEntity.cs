@@ -208,6 +208,8 @@ namespace OpenLineBot.Models.Conversation.Entity {
             }
         }
 
-        public abstract void Save ();
+        public virtual void Save (){
+
+        }
     }
 }
