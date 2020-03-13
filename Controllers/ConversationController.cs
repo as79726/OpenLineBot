@@ -50,8 +50,8 @@ namespace OpenLineBot.Controllers {
 
                 return Ok ();
             } catch (Exception ex) {
-                _logger.LogError (ex.StackTrace);
-                bot.Notify (ex);
+                _logger.LogError (ex.InnerException.StackTrace);
+                bot.Notify (ex.InnerException);
                 return Ok ();
             }
         }
