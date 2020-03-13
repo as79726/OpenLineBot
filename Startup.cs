@@ -37,6 +37,8 @@ namespace OpenLineBot {
             FirestoreClient firestoreClient = FirestoreClient.Create (channel);
             FirestoreDb db = FirestoreDb.Create (Configuration.GetSection ("FirseBase:ProjectId").Value, firestoreClient);
             services.AddSingleton<FirestoreDb> (db);
+           
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -155,7 +155,7 @@ namespace OpenLineBot.Repository {
             DocumentReference docRef = _db.Collection (userId).Document (bookDate);
             DocumentSnapshot docShot = await _db.Collection (userId).Document (bookDate).GetSnapshotAsync ();
             Dictionary<string, object> record = new Dictionary<string, object> { { "Name", item },
-                { "Money", Convert.ToInt32 (money) }
+                { "Money", Decimal.Parse (money) }
             };
             if (docShot.Exists) {
                 if (docShot.GetValue<List<Dictionary<string, object>>> ("list").Count > 0) {
