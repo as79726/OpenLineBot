@@ -94,9 +94,8 @@ namespace OpenLineBot.Repository {
             int ret = 0;
 
             try {
-                QuerySnapshot query = await _db.Collection ("records").GetSnapshotAsync ();
-                List<Dictionary<string, object>> list = _db.Collection ("records").Document (userId).GetSnapshotAsync ().Result.GetValue<List<Dictionary<string, object>>> ("list");
-                ret = query.Count == 0 ? 0 : list.Count == 0 ? 0 : list.Select (a => Convert.ToInt32 (a["QuestionNumber"])).ToList ().Max ();
+                DocumentSnapshot document = await _db.Collection ("records").Document (userId).GetSnapshotAsync ();
+                ret = document.Exists ? (document.GetValue<List<Dictionary<string, object>>> ("list").Count == 0 ? 0 : document.GetValue<List<Dictionary<string, object>>> ("list").Select (a => Convert.ToInt32 (a["QuestionNumber"])).ToList ().Max ()) : 0;
             } catch (Exception ex) {
                 Bot.PushMessage (ex.StackTrace);
                 //Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
