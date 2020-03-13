@@ -45,18 +45,18 @@ namespace OpenLineBot.Service {
         }
 
         public void PushMessage (ButtonsTemplate response) {
-            _RockBot.PushMessage (UserInfo.userId, response);
+              _RockBot.ReplyMessageWithJSON (UserInfo.userId, JsonConvert.SerializeObject(response));
         }
 
         public void PushMessage (ConfirmTemplate response) {
-            _RockBot.PushMessage (UserInfo.userId, response);
+              _RockBot.ReplyMessageWithJSON (UserInfo.userId, JsonConvert.SerializeObject(response));
         }
 
         public void PushMessage (TemplateMessage response) {
-            _RockBot.PushMessage (UserInfo.userId, response);
+              _RockBot.ReplyMessageWithJSON (UserInfo.userId, JsonConvert.SerializeObject(response));
         }
         public void PushMessage (string response) {
-            _RockBot.PushMessage (UserInfo.userId, response);
+             _RockBot.ReplyMessageWithJSON (UserInfo.userId, JsonConvert.SerializeObject(response));
         }
     }
 
