@@ -16,7 +16,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace OpenLineBot {
-    public class Startup {
+    public  class Startup {
         public Startup (IConfiguration configuration, IHostEnvironment hostingEnvironment) {
             Configuration = configuration;
             HostEnvironment = hostingEnvironment;

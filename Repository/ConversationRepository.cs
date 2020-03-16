@@ -80,8 +80,8 @@ namespace OpenLineBot.Repository {
             bool ret = false;
 
             try {
-                QuerySnapshot query = await _db.Collection ("records").GetSnapshotAsync ();
-                ret = query.Count == 0 ? false : _db.Collection ("records").Document (userId).GetSnapshotAsync ().Result.GetValue<List<Dictionary<string, object>>> ("list").Count == 0 ? false : true;
+                DocumentSnapshot document = await _db.Collection ("records").Document (userId).GetSnapshotAsync();
+                ret = document.Exists ? (document.GetValue<List<Dictionary<string, object>>> ("list").Count == 0 ? false : true) : false;
             } catch (Exception ex) {
                 Bot.PushMessage (ex.StackTrace);
                 // Bot.Notify (new Exception (new Error (ErrCode.D001, Bot.UserInfo.userId, ex.Message).Message));
