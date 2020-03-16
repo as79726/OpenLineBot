@@ -14,6 +14,7 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
         public Calculation (BotService bot, FirestoreDb db) : base (bot, db) {
             _Bot = bot;
             _db = db;
+            service = new DatabaseService (bot, _db);
             if (service.IsAny (bot.UserInfo.userId)) {
                 foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
                     Order order = pi.GetCustomAttribute<Order> ();
