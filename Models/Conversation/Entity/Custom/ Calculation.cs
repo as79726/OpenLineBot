@@ -1,30 +1,37 @@
+using System.IO;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using Google.Cloud.Firestore;
 using isRock.LineBot;
 using OpenLineBot.Models;
+using OpenLineBot.Models.Conversation;
 using OpenLineBot.Models.System;
 using OpenLineBot.Service;
 namespace OpenLineBot.Models.Conversation.Entity.Custom {
-    public class CheckAccounts : ConversationEntity {
-        BotService _Bot = null;
-
-        private readonly FirestoreDb _db;
-        DatabaseService service = null;
-        public CheckAccounts (BotService bot, FirestoreDb db) : base (bot, db) {
+    public class Calculation : ConversationEntity {
+        public Calculation (BotService bot, FirestoreDb db) : base (bot, db) {
             _Bot = bot;
             _db = db;
-            service = new DatabaseService (bot, _db);
             if (service.IsAny (bot.UserInfo.userId)) {
                 foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
                     Order order = pi.GetCustomAttribute<Order> ();
                     if (order != null) {
                         string value = service.QueryAnswer (bot.UserInfo.userId, order.Id, this.GetType ().FullName);
                         if (!string.IsNullOrEmpty (value)) {
-                            pi.SetValue (this, value);
+                            switch (order.Id) {
+                                    case 1:
+                                        DateTime time = DateTime.Parse(value);
+                                        pi.SetValue (this, new DateTime (time.Year, time.Month, 1));
+                                        break;
+                                    case 2:
+                                        pi.SetValue (this, DateTime.Parse (value).AddMonths (1).AddDays (-1));
+                                        break;
+                                    default:
+                                        pi.SetValue (this, value);
+                                        break;
+                                }
                         }
                     }
 
@@ -32,10 +39,19 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
             }
         }
 
+        BotService _Bot = null;
+        private readonly FirestoreDb _db;
+        DatabaseService service = null;
         [Order (1)]
-        [DateTemplateQuestion ("記帳日期", @"https://d26hyti2oua2hb.cloudfront.net/600/arts/201904291424-BqA1d.jpg")]
+        [DateTemplateQuestion ("開始時間,從選擇的日期月份開始", @"https://d26hyti2oua2hb.cloudfront.net/600/arts/201904291424-BqA1d.jpg")]
         [Answer (typeof (DateFilter), "選日期, 不要自己打")]
-        public string bookDate { get; set; }
+        public DateTime startDate { get; set; }
+
+        [Order (2)]
+        [DateTemplateQuestion ("結束時間,從選擇的日期月份結束", @"https://d26hyti2oua2hb.cloudfront.net/600/arts/201904291424-BqA1d.jpg")]
+        [Answer (typeof (DateFilter), "選日期, 不要自己打")]
+        public DateTime endDate { get; set; }
+
         public override void NextQuestion () {
             DatabaseService service = new DatabaseService (_Bot, _db);
 
@@ -64,27 +80,42 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
                     int lastQuestionNumber = service.LastQuestionNumber (_Bot.UserInfo.userId, this.GetType ().FullName);
                     bool flag = this.IsAnswerPassed (lastQuestionNumber, text);
                     if (flag) {
+                       
                         foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
                             Order order = pi.GetCustomAttribute<Order> ();
                             if (order != null && order.Id == lastQuestionNumber) {
-                                pi.SetValue (this, text);
+                                switch (order.Id) {
+                                    case 1:
+                                        DateTime time = DateTime.Parse(text);
+                                        pi.SetValue (this, new DateTime (time.Year, time.Month, 1));
+                                        break;
+                                    case 2:
+                                        pi.SetValue (this, DateTime.Parse (text).AddMonths (1).AddDays (-1));
+                                        break;
+                                    default:
+                                        pi.SetValue (this, text);
+                                        break;
+                                }
+
                             }
 
                         }
                         service.Update (_Bot.UserInfo.userId, lastQuestionNumber, text, this.GetType ().FullName);
 
                         if (this.MaxOrder == lastQuestionNumber) {
-                            DocumentSnapshot document = _db.Collection (_Bot.UserInfo.userId).Document (this.bookDate).GetSnapshotAsync ().Result;
-                            if (document.Exists) {
-                                List<Dictionary<string, object>> list = document.GetValue<List<Dictionary<string, object>>> ("list");
-                                List<MessageBase> messages = list.Select (a => {
-                                    string message = @"品項: " + a["Name"] + @" 金額: " + a["Money"];
-                                    return new TextMessage (message);
-                                }).ToList<MessageBase> ();
+                            QuerySnapshot query = _db.Collection (_Bot.UserInfo.userId).GetSnapshotAsync().Result;
+          
+                            if (query.Count > 0) {
+                                 List<MessageBase> messages = query.Where(a => DateTime.Parse(a.Id) >= this.startDate && DateTime.Parse(a.Id) <= this.endDate).Select(a=> new { key = a.Id, value = a.GetValue<List<Dictionary<string, object>>>("list").Sum(a=>Convert.ToUInt32(a["Money"]))})
+                                    .GroupBy(a=>DateTime.Parse(a.key).ToString("yyyy/MM")).Select(a=> {
+                                        long total = a.Sum(a=> a.value);
+                                        string text = a.Key  + " 總金額:" + total;
+                                        return new TextMessage(text);
+                                    }).ToList<MessageBase> ();
 
                                 _Bot.ReplyMessage (_Bot.LineEvent.replyToken, messages);
                             } else {
-                                _Bot.ReplyMessage (_Bot.LineEvent.replyToken, @"當日無消費");
+                                _Bot.ReplyMessage (_Bot.LineEvent.replyToken, @"範圍區間無消費");
                             }
                             service.Remove (_Bot.UserInfo.userId, this.GetType ().FullName);
                         } else {
@@ -100,6 +131,5 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
                 _Bot.Notify (ex);
             }
         }
-
     }
 }

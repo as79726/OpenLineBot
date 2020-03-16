@@ -1,3 +1,4 @@
+using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,22 +9,22 @@ using Google.Cloud.Firestore.V1;
 using Grpc.Auth;
 using Grpc.Core;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace OpenLineBot {
-    public  class Startup {
+    public class Startup {
         public Startup (IConfiguration configuration, IHostEnvironment hostingEnvironment) {
             Configuration = configuration;
             HostEnvironment = hostingEnvironment;
         }
 
         public IConfiguration Configuration { get; }
-        public IHostEnvironment HostEnvironment {get;}
+        public IHostEnvironment HostEnvironment { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices (IServiceCollection services) {
