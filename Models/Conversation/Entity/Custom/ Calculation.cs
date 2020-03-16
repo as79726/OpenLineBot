@@ -20,18 +20,10 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
                     if (order != null) {
                         string value = service.QueryAnswer (bot.UserInfo.userId, order.Id, this.GetType ().FullName);
                         if (!string.IsNullOrEmpty (value)) {
-                            switch (order.Id) {
-                                    case 1:
-                                        DateTime time = DateTime.Parse(value);
-                                        pi.SetValue (this, new DateTime (time.Year, time.Month, 1));
-                                        break;
-                                    case 2:
-                                        pi.SetValue (this, DateTime.Parse (value).AddMonths (1).AddDays (-1));
-                                        break;
-                                    default:
+                          
                                         pi.SetValue (this, value);
-                                        break;
-                                }
+
+                                
                         }
                     }
 
@@ -45,12 +37,12 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
         [Order (1)]
         [DateTemplateQuestion ("開始時間,從選擇的日期月份開始", @"https://d26hyti2oua2hb.cloudfront.net/600/arts/201904291424-BqA1d.jpg")]
         [Answer (typeof (DateFilter), "選日期, 不要自己打")]
-        public DateTime startDate { get; set; }
+        public string startDate { get; set; }
 
         [Order (2)]
         [DateTemplateQuestion ("結束時間,從選擇的日期月份結束", @"https://d26hyti2oua2hb.cloudfront.net/600/arts/201904291424-BqA1d.jpg")]
         [Answer (typeof (DateFilter), "選日期, 不要自己打")]
-        public DateTime endDate { get; set; }
+        public string endDate { get; set; }
 
         public override void NextQuestion () {
             DatabaseService service = new DatabaseService (_Bot, _db);
@@ -84,17 +76,9 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
                         foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
                             Order order = pi.GetCustomAttribute<Order> ();
                             if (order != null && order.Id == lastQuestionNumber) {
-                                switch (order.Id) {
-                                    case 1:
-                                        DateTime time = DateTime.Parse(text);
-                                        pi.SetValue (this, new DateTime (time.Year, time.Month, 1));
-                                        break;
-                                    case 2:
-                                        pi.SetValue (this, DateTime.Parse (text).AddMonths (1).AddDays (-1));
-                                        break;
-                                    default:
+
                                         pi.SetValue (this, text);
-                                        break;
+                                        
                                 }
 
                             }
@@ -104,9 +88,10 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
 
                         if (this.MaxOrder == lastQuestionNumber) {
                             QuerySnapshot query = _db.Collection (_Bot.UserInfo.userId).GetSnapshotAsync().Result;
-          
+                             DateTime startDate = DateTime.Parse(this.startDate);
+                             DateTime endDate = DateTime.Parse(this.endDate);
                             if (query.Count > 0) {
-                                 List<MessageBase> messages = query.Where(a => DateTime.Parse(a.Id) >= this.startDate && DateTime.Parse(a.Id) <= this.endDate).Select(a=> new { key = a.Id, value = a.GetValue<List<Dictionary<string, object>>>("list").Sum(a=>Convert.ToUInt32(a["Money"]))})
+                                 List<MessageBase> messages = query.Where(a => DateTime.Parse(a.Id) >= new DateTime(startDate.Year, startDate.Month, 1)  && DateTime.Parse(a.Id) <= endDate.AddMonths(1).AddDays(-1)).Select(a=> new { key = a.Id, value = a.GetValue<List<Dictionary<string, object>>>("list").Sum(a=>Convert.ToUInt32(a["Money"]))})
                                     .GroupBy(a=>DateTime.Parse(a.key).ToString("yyyy/MM")).Select(a=> {
                                         long total = a.Sum(a=> a.value);
                                         string text = a.Key  + " 總金額:" + total;

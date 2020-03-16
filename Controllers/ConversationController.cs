@@ -47,6 +47,8 @@ namespace OpenLineBot.Controllers {
                         new Bookkeeping (bot, _db).NextQuestion ();
                     } else if ((bot.LineEvent.type.Equals ("message")) && (bot.LineEvent.message.text.Equals ("查帳"))) {
                         new CheckAccounts (bot, _db).NextQuestion ();
+                    }else if ((bot.LineEvent.type.Equals ("message")) && (bot.LineEvent.message.text.Equals ("結算"))) {
+                        new Calculation (bot, _db).NextQuestion ();
                     }
                 }
 
