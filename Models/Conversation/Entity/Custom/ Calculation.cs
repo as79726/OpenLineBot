@@ -1,6 +1,6 @@
-using System.IO;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Google.Cloud.Firestore;
@@ -20,10 +20,9 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
                     if (order != null) {
                         string value = service.QueryAnswer (bot.UserInfo.userId, order.Id, this.GetType ().FullName);
                         if (!string.IsNullOrEmpty (value)) {
-                          
-                                        pi.SetValue (this, value);
 
-                                
+                            pi.SetValue (this, value);
+
                         }
                     }
 
@@ -72,30 +71,27 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
                     int lastQuestionNumber = service.LastQuestionNumber (_Bot.UserInfo.userId, this.GetType ().FullName);
                     bool flag = this.IsAnswerPassed (lastQuestionNumber, text);
                     if (flag) {
-                       
+
                         foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
                             Order order = pi.GetCustomAttribute<Order> ();
                             if (order != null && order.Id == lastQuestionNumber) {
-
-                                        pi.SetValue (this, text);
-                                        
-                                }
-
+                                pi.SetValue (this, text);
                             }
 
                         }
+
                         service.Update (_Bot.UserInfo.userId, lastQuestionNumber, text, this.GetType ().FullName);
 
                         if (this.MaxOrder == lastQuestionNumber) {
-                            QuerySnapshot query = _db.Collection (_Bot.UserInfo.userId).GetSnapshotAsync().Result;
-                             DateTime startDate = DateTime.Parse(this.startDate);
-                             DateTime endDate = DateTime.Parse(this.endDate);
+                            QuerySnapshot query = _db.Collection (_Bot.UserInfo.userId).GetSnapshotAsync ().Result;
+                            DateTime startDate = DateTime.Parse (this.startDate);
+                            DateTime endDate = DateTime.Parse (this.endDate);
                             if (query.Count > 0) {
-                                 List<MessageBase> messages = query.Where(a => DateTime.Parse(a.Id) >= new DateTime(startDate.Year, startDate.Month, 1)  && DateTime.Parse(a.Id) <= endDate.AddMonths(1).AddDays(-1)).Select(a=> new { key = a.Id, value = a.GetValue<List<Dictionary<string, object>>>("list").Sum(a=>Convert.ToUInt32(a["Money"]))})
-                                    .GroupBy(a=>DateTime.Parse(a.key).ToString("yyyy/MM")).Select(a=> {
-                                        long total = a.Sum(a=> a.value);
-                                        string text = a.Key  + " 總金額:" + total;
-                                        return new TextMessage(text);
+                                List<MessageBase> messages = query.Where (a => DateTime.Parse (a.Id) >= new DateTime (startDate.Year, startDate.Month, 1) && DateTime.Parse (a.Id) <= endDate.AddMonths (1).AddDays (-1)).Select (a => new { key = a.Id, value = a.GetValue<List<Dictionary<string, object>>> ("list").Sum (a => Convert.ToUInt32 (a["Money"])) })
+                                    .GroupBy (a => DateTime.Parse (a.key).ToString ("yyyy/MM")).Select (a => {
+                                        long total = a.Sum (a => a.value);
+                                        string text = a.Key + " 總金額:" + total;
+                                        return new TextMessage (text);
                                     }).ToList<MessageBase> ();
 
                                 _Bot.ReplyMessage (_Bot.LineEvent.replyToken, messages);
