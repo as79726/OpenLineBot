@@ -97,10 +97,10 @@
                         }
                     } else {
                         // doc.data() will be undefined in this case
-                        alert("No such document!");
+                        console.log("No such document!");
                     }
                 }).catch(function (error) {
-                   alert("Error getting document:", error);
+                   console.log("Error getting document:", error);
                 });
             }
 
@@ -136,8 +136,9 @@
 </head>
 
 <body>
+    <div class="container">
     <div class="row">
-        <div class="col-md-12" style="margin:5px">
+        <div class="col-md-12 col-xs-12" style="margin:10px">
 
             <div id="date" class='input-group date' style="max-width:280px">
                 <input type='text' class='form-control' /><span class='input-group-addon'><span
@@ -153,7 +154,7 @@
             <input class="form-control" type="text" id="msg" value="測試" /><br />
             <button class="btn btn-primary" id="ButtonSendMsg">要傳送的訊息</button>-->
         </div>
-        <div class="col-md-12" style="margin: 5px;">
+        <div class="col-md-12 col-xs-12" style="margin: 10px;">
             <table id="table" class="table table-striped">
                 <thead>
                     <tr>
@@ -167,6 +168,7 @@
             </table>
         </div>
     </div>
+</div>
 </body>
 
 </html>
