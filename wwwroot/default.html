@@ -1,72 +1,171 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>test LIFF</title>
     <script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
     <script src="Scripts/jquery-3.3.1.min.js"></script>
+    <script src="Scripts/moment.min.js"></script>
+    <script src="Scripts/moment-with-locales.min.js"></script>
     <script src="Scripts/bootstrap.min.js"></script>
+    <script src="Scripts/bootstrap-datetimepicker.min.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/7.11.0/firebase-app.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/7.11.0/firebase-auth.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/7.11.0/firebase-firestore.js"></script>
     <link href="Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="Content/bootstrap-datetimepicker.css" rel="stylesheet" />
+    <link href="Content/font-awesome.css" rel="stylesheet" />
+    <link href="Content/AdminLTE.css" />
+
+
+
     <script>
         //init LIFF
-        function initializeApp(data) {
+      /*  function initializeApp(data) {
             //取得QueryString
             let urlParams = new URLSearchParams(window.location.search);
             //顯示QueryString
             $('#QueryString').val(urlParams.toString());
             //顯示UserId
             $('#userid').val(data.context.userId);
+        }*/
+
+        function initFirebase() {
+            let firebaseConfig = {
+                apiKey: "AIzaSyAEV8lk_jk8km2mVQlQg4WfigptS0SgY-0",
+                authDomain: "openlinebot.firebaseapp.com",
+                databaseURL: "https://openlinebot.firebaseio.com",
+                projectId: "openlinebot",
+                storageBucket: "openlinebot.appspot.com",
+                messagingSenderId: "42148313709",
+                appId: "1:42148313709:web:9545f654e703a9b0469d64",
+                measurementId: "G-24Z8RK9ZQ3"
+            };
+            // Initialize Firebase
+            let app = firebase.initializeApp(firebaseConfig);
+            return firebase.firestore(app);
         }
 
         //ready
         $(function () {
+
+            $("#date").datetimepicker({
+                format: 'YYYY-MM-DD',
+                allowInputToggle: true,
+                locale: 'zh-TW',
+                defaultDate: new Date()
+            }).on("dp.change", function (e) {
+                search(e.date.format('YYYY-MM-DD'));
+            });
+
+            let lineData = null;
+            let db = null;
             //init LIFF
             liff.init(function (data) {
-                initializeApp(data);
+                lineData = data;
+                // initializeApp(data);
             });
+
+            db = initFirebase();
+            search($("#date > input").val());
+            function search(date) {
+                $("#table > tbody").html("");
+                var docRef = db.collection(lineData.context.userId).doc(date);
+
+                docRef.get().then(function (doc) {
+                    if (doc.exists) {
+                        console.log("Document data:", doc.data());
+                        let list = doc.data()["list"];
+                        for (let i = 0; i < list.length; i++) {
+                            let tr = $("<tr/>");
+                            $("<td/>").text(i + 1).appendTo(tr);
+                            $("<td/>").text(list[i]["Name"]).appendTo(tr);
+                            $("<td/>").text(list[i]["Money"]).appendTo(tr);
+                            let button = $('<button/>',
+                                {
+                                    text: 'Remove',
+                                    class: 'btn btn-block btn-danger'
+                                });
+                            $("<td/>").append(button).appendTo(tr);
+                            $("#table > tbody").append(tr);
+                        }
+                    } else {
+                        // doc.data() will be undefined in this case
+                        console.log("No such document!");
+                    }
+                }).catch(function (error) {
+                    console.log("Error getting document:", error);
+                });
+            }
 
             //ButtonGetProfile
-            $('#ButtonGetProfile').click(function () {
-                //取得User Proile
-                liff.getProfile().then(
-                    profile=> {
-                        //顯示在text box中
-                        $('#UserInfo').val(profile.displayName);
-                        //居然可以alert
-                        alert('done');
-                    }
-                );
-            });
+            /*   $('#ButtonGetProfile').click(function () {
+                   //取得User Proile
+                   liff.getProfile().then(
+                       profile => {
+                           //顯示在text box中
+                           $('#UserInfo').val(profile.displayName);
+                           //居然可以alert
+                           alert('done');
+                       }
+                   );
+               });
+   
+               //ButtonSendMsg
+               $('#ButtonSendMsg').click(function () {
+                   liff.sendMessages([
+                       {
+                           type: 'text',
+                           text: $('#msg').val()
+                       }
+                   ])
+                       .then(() => {
+                           alert('done');
+                       })
+               });*/
 
-            //ButtonSendMsg
-            $('#ButtonSendMsg').click(function () {
-                liff.sendMessages([
-                 {
-                     type: 'text',
-                     text: $('#msg').val()
-                 }
-                ])
-               .then(() => {
-                   alert('done');
-               })
-            });
+
         });
     </script>
 </head>
+
 <body>
-        <div class="row">
-            <div class="col-md-6" style="margin:5px">
-                <label>user id:</label>
-                <input class="form-control" type="text" id="userid" />   <br />
-                <label>QueryString:</label>
-                <input class="form-control" type="text" id="QueryString" /><br />
-                <button class="btn btn-primary" id="ButtonGetProfile">Get Profile</button>
-                <input class="form-control" type="text" id="UserInfo" /><br />
-                <label>要傳送的訊息:</label>
-                <input class="form-control" type="text" id="msg" value="測試" /><br />
-                <button class="btn btn-primary" id="ButtonSendMsg"  >要傳送的訊息</button>
+    <div class="row">
+        <div class="col-md-12" style="margin:5px">
+
+            <div id="date" class='input-group date' style="max-width:280px">
+                <input type='text' class='form-control' /><span class='input-group-addon'><span
+                        class='glyphicon glyphicon-time'></span></span>
             </div>
+            <!-- <label>user id:</label>
+            <input class="form-control" type="text" id="userid" /> <br />
+            <label>QueryString:</label>
+            <input class="form-control" type="text" id="QueryString" /><br />
+            <button class="btn btn-primary" id="ButtonGetProfile">Get Profile</button>
+            <input class="form-control" type="text" id="UserInfo" /><br />
+            <label>要傳送的訊息:</label>
+            <input class="form-control" type="text" id="msg" value="測試" /><br />
+            <button class="btn btn-primary" id="ButtonSendMsg">要傳送的訊息</button>-->
         </div>
+        <div class="col-md-6" style="margin: 5px;">
+            <table id="table" class="table  table-responsive table-striped">
+                <thead>
+                    <tr>
+                        <th style="width: 10px">#</th>
+                        <th>品名</th>
+                        <th>金額</th>
+                        <th style="width: 40px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+
+
+                </tbody>
+            </table>
+        </div>
+    </div>
 </body>
+
 </html>
