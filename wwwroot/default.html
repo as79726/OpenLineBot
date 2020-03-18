@@ -62,14 +62,16 @@
 
             let lineData = null;
             let db = null;
+            db = initFirebase();
             //init LIFF
             liff.init(function (data) {
                 lineData = data;
+                search($("#date > input").val());
                 // initializeApp(data);
             });
 
-            db = initFirebase();
-            search($("#date > input").val());
+           
+  
 
             function search(date) {
                 alert(date);
@@ -153,13 +155,13 @@
             <button class="btn btn-primary" id="ButtonSendMsg">要傳送的訊息</button>-->
         </div>
         <div class="col-md-6" style="margin: 5px;">
-            <table id="table" class="table  table-responsive table-striped">
+            <table id="table" class="table table-responsive table-striped">
                 <thead>
                     <tr>
-                        <th style="width: 10px">#</th>
+                        <th>#</th>
                         <th>品名</th>
                         <th>金額</th>
-                        <th style="width: 40px"></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
