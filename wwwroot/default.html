@@ -73,6 +73,7 @@
 
             function search(date) {
                 alert(date);
+              alert(lineData.context.userId);
                 $("#table > tbody").html("");
                 var docRef = db.collection(lineData.context.userId).doc(date);
 
