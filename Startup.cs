@@ -1,6 +1,6 @@
-using System.IO;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
@@ -45,7 +45,7 @@ namespace OpenLineBot {
             if (env.IsDevelopment ()) {
                 app.UseDeveloperExceptionPage ();
             }
-
+            app.UseStaticFiles ();
             app.UseHttpsRedirection ();
 
             app.UseRouting ();
