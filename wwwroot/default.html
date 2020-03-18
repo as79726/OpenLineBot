@@ -49,7 +49,7 @@
         }
 
         //ready
-        $(function () {
+        $(document).ready(function () {
 
             $("#date").datetimepicker({
                 format: 'YYYY-MM-DD',
@@ -70,7 +70,9 @@
 
             db = initFirebase();
             search($("#date > input").val());
+
             function search(date) {
+                alert(date);
                 $("#table > tbody").html("");
                 var docRef = db.collection(lineData.context.userId).doc(date);
 
