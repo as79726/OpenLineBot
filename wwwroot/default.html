@@ -17,20 +17,20 @@
     <link href="Content/bootstrap.min.css" rel="stylesheet" />
     <link href="Content/bootstrap-datetimepicker.css" rel="stylesheet" />
     <link href="Content/font-awesome.css" rel="stylesheet" />
-    <link href="Content/AdminLTE.css" />
+    <link href="Content/AdminLTE.css" rel="stylesheet" />
 
 
 
     <script>
         //init LIFF
-      /*  function initializeApp(data) {
-            //取得QueryString
-            let urlParams = new URLSearchParams(window.location.search);
-            //顯示QueryString
-            $('#QueryString').val(urlParams.toString());
-            //顯示UserId
-            $('#userid').val(data.context.userId);
-        }*/
+        /*  function initializeApp(data) {
+              //取得QueryString
+              let urlParams = new URLSearchParams(window.location.search);
+              //顯示QueryString
+              $('#QueryString').val(urlParams.toString());
+              //顯示UserId
+              $('#userid').val(data.context.userId);
+          }*/
 
         function initFirebase() {
             let firebaseConfig = {
@@ -70,13 +70,13 @@
                 // initializeApp(data);
             });
 
-           
-  
+
+
 
             function search(date) {
-             
+
                 $("#table > tbody").html("");
-                var docRef = db.collection(lineData.context.userId).doc(date);
+                var docRef = db.collection("Uefc0488223514f494c36e610055f0abe").doc(date);
 
                 docRef.get().then(function (doc) {
                     if (doc.exists) {
@@ -90,7 +90,7 @@
                             let button = $('<button/>',
                                 {
                                     text: 'Remove',
-                                    class: 'btn btn-block btn-danger'
+                                    class: 'btn btn-danger btn-sm'
                                 });
                             $("<td/>").append(button).appendTo(tr);
                             $("#table > tbody").append(tr);
@@ -100,7 +100,7 @@
                         console.log("No such document!");
                     }
                 }).catch(function (error) {
-                   console.log("Error getting document:", error);
+                    console.log("Error getting document:", error);
                 });
             }
 
@@ -136,10 +136,8 @@
 </head>
 
 <body>
-    <div class="container">
     <div class="row">
-        <div class="col-md-10 col-xs-10" style="margin:5px">
-
+        <div class="col-md-12" style="margin:5px">
             <div id="date" class='input-group date' style="max-width:280px">
                 <input type='text' class='form-control' /><span class='input-group-addon'><span
                         class='glyphicon glyphicon-time'></span></span>
@@ -154,21 +152,23 @@
             <input class="form-control" type="text" id="msg" value="測試" /><br />
             <button class="btn btn-primary" id="ButtonSendMsg">要傳送的訊息</button>-->
         </div>
-        <div class="col-md-10 col-xs-10" style="margin: 5px;">
+
+    </div>
+    <div class="row">
+        <div class="col-md-12" style="margin: 5px;">
             <table id="table" class="table table-striped" style="width: 100%;">
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>品名</th>
                         <th>金額</th>
-                        <th style="max-width:10px"></th>
+                        <th style="max-width:5px"></th>
                     </tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
     </div>
-</div>
 </body>
 
 </html>
