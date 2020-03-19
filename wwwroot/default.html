@@ -69,7 +69,7 @@
             liff.init({
                 liffId: "1653891425-LyydJZrj"
             }).then(() => {
-                lineData = this;
+                lineData = liff.getContext();
                 search($("#date > input").val());
             })
 
@@ -98,7 +98,7 @@
                     default:
                         break;
                 }
-                db.collection(lineData.context.userId).doc(currentDate).set({ "list": currentList }).then(() => {
+                db.collection(lineData.userId).doc(currentDate).set({ "list": currentList }).then(() => {
                     $(e.target).parent().text(value);
                     $(e.target).remove();
                 }).catch(error => {
@@ -112,7 +112,7 @@
                 let item = currentList.find((item, index, array) => {
                     return item["Id"] == id;
                 })
-                db.collection(lineData.context.userId).doc(currentDate).update({
+                db.collection(lineData.userId).doc(currentDate).update({
                     list: firebase.firestore.FieldValue.arrayRemove(item)
                 }).then(() => {
                     $(e.target).closest("tr").remove();
@@ -126,7 +126,7 @@
             function search(date) {
 
                 $("#table > tbody > tr").remove();
-                var docRef = db.collection(lineData.context.userId).doc(date);
+                var docRef = db.collection(lineData.userId).doc(date);
 
                 docRef.get().then(function (doc) {
                     if (doc.exists) {
