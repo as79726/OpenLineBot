@@ -63,6 +63,8 @@
             let lineData = null;
             let db = null;
             db = initFirebase();
+            let currentList = null;
+            let currentDate = null;
             //init LIFF
             liff.init(function (data) {
                 lineData = data;
@@ -71,26 +73,71 @@
             });
 
 
-            $(document).on("dblclick", "#table > tbody > tr > td:nth-child(2)",function(e){
-                alert(e.target);
+            $(document).on("dblclick", "#table > tbody > tr > td:nth-child(2), #table > tbody > tr > td:nth-child(3)", function (e) {
+                let value = $(e.target).text();
+                $(e.target).text("");
+                $("<input/>").val(value).appendTo(e.target);
+            });
+
+            $(document).on("blur", "#table > tbody > tr > td:nth-child(2) > input , #table > tbody > tr > td:nth-child(3) > input", function (e) {
+                let value = $(e.target).val();
+                let id = $(e.target).closest("tr").prop("pk")
+                let item = currentList.find((item, index, array) => {
+                    return item["Id"] == id;
+                })
+
+                let tdIndex = $(e.target).parent().index();
+
+                switch (tdIndex) {
+                    case 1:
+                        item["Name"] = value;
+                        break;
+                    case 2:
+                        item["Money"] = value;
+                    default:
+                        break;
+                }
+                db.collection(lineData.context.userId).doc(currentDate).set({ "list": currentList }).then(() => {
+                    $(e.target).parent().text(value);
+                    $(e.target).remove();
+                }).catch(error => {
+                    alert(error.message)
+                });
+
+            });
+            $(document).on("click", "#table > tbody > tr > td:nth-child(4) > button", function (e) {
+
+                let id = $(e.target).closest("tr").prop("pk");
+                let item = currentList.find((item, index, array) => {
+                    return item["Id"] == id;
+                })
+                db.collection(lineData.context.userId).doc(currentDate).update({
+                    list: firebase.firestore.FieldValue.arrayRemove(item)
+                }).then(() => {
+                    $(e.target).closest("tr").remove();
+                }).catch(error => {
+                    alert(error.message)
+                });
             });
 
 
 
             function search(date) {
 
-                $("#table > tbody").html("");
-                var docRef = db.collection("Uefc0488223514f494c36e610055f0abe").doc(date);
+                $("#table > tbody > tr").remove();
+                var docRef = db.collection(lineData.context.userId).doc(date);
 
                 docRef.get().then(function (doc) {
                     if (doc.exists) {
                         console.log("Document data:", doc.data());
-                        let list = doc.data()["list"];
-                        for (let i = 0; i < list.length; i++) {
+                        currentDate = date;
+                        currentList = doc.data()["list"];
+                        for (let i = 0; i < currentList.length; i++) {
                             let tr = $("<tr/>");
+                            tr.prop("pk", currentList[i]["Id"]);
                             $("<td/>").text(i + 1).appendTo(tr);
-                            $("<td/>").text(list[i]["Name"]).appendTo(tr);
-                            $("<td/>").text(list[i]["Money"]).appendTo(tr);
+                            $("<td/>").text(currentList[i]["Name"]).appendTo(tr);
+                            $("<td/>").text(currentList[i]["Money"]).appendTo(tr);
                             let button = $('<button/>',
                                 {
                                     text: 'Remove',
