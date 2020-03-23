@@ -34,7 +34,7 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom
     {
         public bool Pass(string s)
         {
-            Regex rgx = new Regex(@"^\d{1,3}$");
+            Regex rgx = new Regex(@"^\d+$");
             return rgx.IsMatch(s);
         }
     }
