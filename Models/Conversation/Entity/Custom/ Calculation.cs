@@ -88,9 +88,9 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
                             DateTime startDate = DateTime.Parse (this.startDate);
                             DateTime endDate = DateTime.Parse (this.endDate);
                             if (query.Count > 0) {
-                                List<MessageBase> messages = query.Where (a => DateTime.Parse (a.Id) >= new DateTime (startDate.Year, startDate.Month, 1) && DateTime.Parse (a.Id) <= endDate.AddMonths (1).AddDays (-1)).Select (a => new { key = a.Id, value = a.GetValue<List<Dictionary<string, object>>> ("list").Sum (a => Convert.ToUInt32 (a["Money"])) })
+                                List<MessageBase> messages = query.Where (a => DateTime.Parse (a.Id) >= new DateTime (startDate.Year, startDate.Month, 1) && DateTime.Parse (a.Id) <= endDate.AddMonths (1).AddDays (-1)).Select (a => new { key = a.Id, value = a.GetValue<List<Dictionary<string, object>>> ("list").Sum (a => Decimal.Parse(a["Money"].ToString())) })
                                     .GroupBy (a => DateTime.Parse (a.key).ToString ("yyyy/MM")).Select (a => {
-                                        long total = a.Sum (a => a.value);
+                                        Decimal total = a.Sum (a => a.value);
                                         string text = a.Key + " 總金額:" + total;
                                         return new TextMessage (text);
                                     }).ToList<MessageBase> ();
