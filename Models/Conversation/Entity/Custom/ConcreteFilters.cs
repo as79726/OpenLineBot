@@ -65,4 +65,11 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom
         }
     }
 
+    public class MoneyFilter : IFilter{
+        public bool Pass(string s){
+            Regex rgx = new Regex(@"^\d+(\.\d+)?$");
+            return rgx.IsMatch(s);
+        }
+    }
+
 }

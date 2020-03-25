@@ -36,7 +36,7 @@ namespace OpenLineBot.Models.Conversation.Entity.Custom {
 
         [Order (2)]
         [TextQuestion ("金額")]
-        [Answer (typeof (LeaveDaysFilter), "給個數目好嗎!")]
+        [Answer (typeof (MoneyFilter), "給個數目好嗎!")]
         public string money { get; set; }
 
         [Order (3)]
