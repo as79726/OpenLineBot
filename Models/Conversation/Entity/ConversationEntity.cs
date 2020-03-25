@@ -67,158 +67,161 @@ namespace OpenLineBot.Models.Conversation.Entity {
                                 throw new Exception (new Error (ErrCode.S004).Message);
                         }
                     } catch (Exception ex) {
-                        _Bot.ReplyMessage (_Bot.LineEvent.replyToken, this.GetQuestionTextOnly(order));
+                        _Bot.ReplyMessage (_Bot.LineEvent.replyToken, this.GetQuestionTextOnly (order));
                     }
-                     break;
+                    break;
                 }
 
             }
 
-           
         }
 
+        public string GetQuestionTextOnly (int order) {
+            if (order > MaxOrder || order <= 0) throw new Exception (new Error (ErrCode.S005).Message);
 
-public string GetQuestionTextOnly (int order) {
-    if (order > MaxOrder || order <= 0) throw new Exception (new Error (ErrCode.S005).Message);
+            var props = GetType ().GetProperties ();
+            foreach (var prop in props) {
+                var orderAttr = ((Order[]) prop.GetCustomAttributes (typeof (Order), false)).FirstOrDefault ();
+                if (orderAttr.Id == order) {
+                    var questionAttr = ((IQuestion[]) prop.GetCustomAttributes (typeof (IQuestion), false)).FirstOrDefault ();
+                    return questionAttr.Question;
+                }
+            }
 
-    var props = GetType ().GetProperties ();
-    foreach (var prop in props) {
-        var orderAttr = ((Order[]) prop.GetCustomAttributes (typeof (Order), false)).FirstOrDefault ();
-        if (orderAttr.Id == order) {
-            var questionAttr = ((IQuestion[]) prop.GetCustomAttributes (typeof (IQuestion), false)).FirstOrDefault ();
-            return questionAttr.Question;
+            throw new Exception (new Error (ErrCode.S011).Message);
         }
-    }
 
-    throw new Exception (new Error (ErrCode.S011).Message);
-}
+        public bool IsAnswerPassed (int order, string text) {
+            if (order > MaxOrder || order <= 0) throw new Exception (new Error (ErrCode.S005).Message);
 
-public bool IsAnswerPassed (int order, string text) {
-    if (order > MaxOrder || order <= 0) throw new Exception (new Error (ErrCode.S005).Message);
+            bool pass = true;
 
-    bool pass = true;
+            var props = GetType ().GetProperties ();
+            foreach (var prop in props) {
+                var orderAttr = ((Order[]) prop.GetCustomAttributes (typeof (Order), false)).FirstOrDefault ();
+                if ((orderAttr != null) && (orderAttr.Id == order)) {
+                    var answerAttr = ((Answer[]) prop.GetCustomAttributes (typeof (Answer), false)).FirstOrDefault ();
+                    if (answerAttr != null) {
+                        var filterType = answerAttr.Filter;
+                        var filterObject = filterType.GetConstructors () [0].Invoke (null);
+                        pass = (bool) filterType.GetMethod ("Pass").Invoke (filterObject, new object[] { text });
+                        break;
+                    }
+                }
 
-    var props = GetType ().GetProperties ();
-    foreach (var prop in props) {
-        var orderAttr = ((Order[]) prop.GetCustomAttributes (typeof (Order), false)).FirstOrDefault ();
-        if ((orderAttr != null) && (orderAttr.Id == order)) {
-            var answerAttr = ((Answer[]) prop.GetCustomAttributes (typeof (Answer), false)).FirstOrDefault ();
-            if (answerAttr != null) {
-                var filterType = answerAttr.Filter;
-                var filterObject = filterType.GetConstructors () [0].Invoke (null);
-                pass = (bool) filterType.GetMethod ("Pass").Invoke (filterObject, new object[] { text });
-                break;
+            }
+
+            return pass;
+        }
+
+        public void PushComplaint (int order) {
+            if (order > MaxOrder || order <= 0) throw new Exception (new Error (ErrCode.S005).Message);
+
+            var props = GetType ().GetProperties ();
+            foreach (var prop in props) {
+                var orderAttr = ((Order[]) prop.GetCustomAttributes (typeof (Order), false)).FirstOrDefault ();
+                if ((orderAttr != null) && (orderAttr.Id == order)) {
+                    var answerAttr = ((Answer[]) prop.GetCustomAttributes (typeof (Answer), false)).FirstOrDefault ();
+                    if (answerAttr != null) {
+                        var complaint = answerAttr.Complaint;
+                        _Bot.PushMessage (complaint);
+                        break;
+                    }
+                }
             }
         }
 
-    }
-
-    return pass;
-}
-
-public void PushComplaint (int order) {
-    if (order > MaxOrder || order <= 0) throw new Exception (new Error (ErrCode.S005).Message);
-
-    var props = GetType ().GetProperties ();
-    foreach (var prop in props) {
-        var orderAttr = ((Order[]) prop.GetCustomAttributes (typeof (Order), false)).FirstOrDefault ();
-        if ((orderAttr != null) && (orderAttr.Id == order)) {
-            var answerAttr = ((Answer[]) prop.GetCustomAttributes (typeof (Answer), false)).FirstOrDefault ();
-            if (answerAttr != null) {
-                var complaint = answerAttr.Complaint;
-                _Bot.PushMessage (complaint);
-                break;
+        public bool HasLastConfirm () {
+            var props = GetType ().GetProperties ();
+            foreach (var prop in props) {
+                var orderAttr = ((Order[]) prop.GetCustomAttributes (typeof (Order), false)).FirstOrDefault ();
+                if (orderAttr.Id == MaxOrder) {
+                    var confirmQuestionAttr = ((ConfirmQuestion[]) prop.GetCustomAttributes (typeof (ConfirmQuestion), false)).FirstOrDefault ();
+                    if (confirmQuestionAttr == null) throw new Exception (new Error (ErrCode.S007).Message);
+                    else return true;
+                }
             }
+            return false;
         }
-    }
-}
 
-public bool HasLastConfirm () {
-    var props = GetType ().GetProperties ();
-    foreach (var prop in props) {
-        var orderAttr = ((Order[]) prop.GetCustomAttributes (typeof (Order), false)).FirstOrDefault ();
-        if (orderAttr.Id == MaxOrder) {
-            var confirmQuestionAttr = ((ConfirmQuestion[]) prop.GetCustomAttributes (typeof (ConfirmQuestion), false)).FirstOrDefault ();
-            if (confirmQuestionAttr == null) throw new Exception (new Error (ErrCode.S007).Message);
-            else return true;
-        }
-    }
-    return false;
-}
+        public virtual void NextQuestion () {
+            DatabaseService service = new DatabaseService (_Bot, _db);
 
-public virtual void NextQuestion () {
-    DatabaseService service = new DatabaseService (_Bot, _db);
+            string text = "";
+            try {
+                // Call successor
+                switch (_Bot.LineEvent.type) {
+                    case "message":
+                        if (_Bot.LineEvent.message.type.Equals ("text")) {
+                            text = _Bot.LineEvent.message.text;
+                        } else {
+                            throw new Exception (new Error (ErrCode.S010).Message);
+                        }
+                        break;
+                    case "postback":
+                        text = _Bot.LineEvent.postback.Params != null ? ((_Bot.LineEvent.postback.Params.datetime != null) ? _Bot.LineEvent.postback.Params.datetime : ((_Bot.LineEvent.postback.Params.date != null) ? _Bot.LineEvent.postback.Params.date : (_Bot.LineEvent.postback.Params.time != null) ? _Bot.LineEvent.postback.Params.time : _Bot.LineEvent.postback.data)) : _Bot.LineEvent.postback.data;
+                        break;
+                    default:
+                        throw new Exception (new Error (ErrCode.S002).Message);
+                }
 
-    string text = "";
-    try {
-        // Call successor
-        switch (_Bot.LineEvent.type) {
-            case "message":
-                if (_Bot.LineEvent.message.type.Equals ("text")) {
-                    text = _Bot.LineEvent.message.text;
+                if (service.LastQuestionNumber (_Bot.UserInfo.userId, this.GetType ().FullName) == 0) {
+                    service.AddRecord (_Bot.UserInfo.userId, 1, this.GetType ().FullName);
+                    this.PushQuestion (1);
                 } else {
-                    throw new Exception (new Error (ErrCode.S010).Message);
-                }
-                break;
-            case "postback":
-                text = _Bot.LineEvent.postback.Params != null ? ((_Bot.LineEvent.postback.Params.datetime != null) ? _Bot.LineEvent.postback.Params.datetime : ((_Bot.LineEvent.postback.Params.date != null) ? _Bot.LineEvent.postback.Params.date : (_Bot.LineEvent.postback.Params.time != null) ? _Bot.LineEvent.postback.Params.time : _Bot.LineEvent.postback.data)) : _Bot.LineEvent.postback.data;
-                break;
-            default:
-                throw new Exception (new Error (ErrCode.S002).Message);
-        }
-
-        if (service.LastQuestionNumber (_Bot.UserInfo.userId, this.GetType ().FullName) == 0) {
-            service.AddRecord (_Bot.UserInfo.userId, 1, this.GetType ().FullName);
-            this.PushQuestion (1);
-        } else {
-            int lastQuestionNumber = service.LastQuestionNumber (_Bot.UserInfo.userId, this.GetType ().FullName);
-            bool flag = this.IsAnswerPassed (lastQuestionNumber, text);
-            if (flag) {
-                foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
-                    Order order = pi.GetCustomAttribute<Order> ();
-                    if (order != null && order.Id == lastQuestionNumber) {
-                        pi.SetValue (this, text);
+                    List<string> _BreakKeyWords = new List<string> { "break", "exit", "放棄", "quit", "cancel", "stop", "abandon", "取消", "離開", "q", "leave", "bye" };
+                    if (_BreakKeyWords.Contains (text)) {
+                        service.Remove (_Bot.UserInfo.userId, this.GetType ().FullName);
+                        return;
                     }
-
-                }
-                service.Update (_Bot.UserInfo.userId, lastQuestionNumber, text, this.GetType ().FullName);
-
-                if (this.MaxOrder == lastQuestionNumber) {
-                    List<TemplateActionBase> actions = new List<TemplateActionBase> ();
-                    for (int i = 1; i <= this.MaxOrder; i++) {
+                    int lastQuestionNumber = service.LastQuestionNumber (_Bot.UserInfo.userId, this.GetType ().FullName);
+                    bool flag = this.IsAnswerPassed (lastQuestionNumber, text);
+                    if (flag) {
                         foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
                             Order order = pi.GetCustomAttribute<Order> ();
-                            if (order != null && order.Id == i) {
-                                actions.Add (new MessageAction () { label = this.GetQuestionTextOnly (i) + " " + pi.GetValue (this), text = pi.GetValue (this).ToString () });
+                            if (order != null && order.Id == lastQuestionNumber) {
+                                pi.SetValue (this, text);
                             }
 
                         }
+                        service.Update (_Bot.UserInfo.userId, lastQuestionNumber, text, this.GetType ().FullName);
+
+                        if (this.MaxOrder == lastQuestionNumber) {
+                            List<TemplateActionBase> actions = new List<TemplateActionBase> ();
+                            for (int i = 1; i <= this.MaxOrder; i++) {
+                                foreach (PropertyInfo pi in this.GetType ().GetProperties ()) {
+                                    Order order = pi.GetCustomAttribute<Order> ();
+                                    if (order != null && order.Id == i) {
+                                        actions.Add (new MessageAction () { label = this.GetQuestionTextOnly (i) + " " + pi.GetValue (this), text = pi.GetValue (this).ToString () });
+                                    }
+
+                                }
+                            }
+
+                            Save ();
+
+                            Column column = new Column () { thumbnailImageUrl = new Uri ("https://beauty-upgrade.tw/wp-content/uploads/2019/06/6-12.jpg"), title = "明細", actions = actions, text = "你的明細如下" };
+                            CarouselTemplate template = new CarouselTemplate () { columns = new List<Column> () { column } };
+                            service.Remove (_Bot.UserInfo.userId, this.GetType ().FullName);
+                            TemplateMessage a = new TemplateMessage (template);
+                            _Bot.PushMessage (a);
+                        } else {
+                            service.AddRecord (_Bot.UserInfo.userId, lastQuestionNumber + 1, this.GetType ().FullName);
+                            this.PushQuestion (lastQuestionNumber + 1);
+                        }
+                    } else {
+                        this.PushComplaint (lastQuestionNumber);
                     }
 
-                    Save ();
-
-                    Column column = new Column () { thumbnailImageUrl = new Uri ("https://beauty-upgrade.tw/wp-content/uploads/2019/06/6-12.jpg"), title = "明細", actions = actions, text = "你的明細如下" };
-                    CarouselTemplate template = new CarouselTemplate () { columns = new List<Column> () { column } };
-                    service.Remove (_Bot.UserInfo.userId, this.GetType ().FullName);
-                    TemplateMessage a = new TemplateMessage (template);
-                    _Bot.PushMessage (a);
-                } else {
-                    service.AddRecord (_Bot.UserInfo.userId, lastQuestionNumber + 1, this.GetType ().FullName);
-                    this.PushQuestion (lastQuestionNumber + 1);
                 }
-            } else {
-                this.PushComplaint (lastQuestionNumber);
+            } catch (Exception ex) {
+                Console.WriteLine (ex.StackTrace);
+                _Bot.Notify (ex);
             }
+        }
+
+        public virtual void Save () {
 
         }
-    } catch (Exception ex) {
-        Console.WriteLine (ex.StackTrace);
-        _Bot.Notify (ex);
     }
-}
-
-public virtual void Save () {
-
-}
-}
 }
